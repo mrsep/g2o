@@ -154,6 +154,7 @@ endif(G2O_USE_OPENMP)
 
 # OpenGL is used in the draw actions for the different types, as well
 # as for creating the GUI itself
+set(OpenGL_GL_PREFERENCE "GLVND")
 find_package(OpenGL)
 
 # If OpenGL was found, use the import target if available. If not, use old-style includes
@@ -223,11 +224,13 @@ macro(DEFINE_SSE_VAR  _setname)
 endmacro(DEFINE_SSE_VAR)
 
 # SSE optimizations:
-DEFINE_SSE_VAR(SSE2)
-DEFINE_SSE_VAR(SSE3)
-DEFINE_SSE_VAR(SSE4_1)
-DEFINE_SSE_VAR(SSE4_2)
-DEFINE_SSE_VAR(SSE4_A)
+IF (NOT CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
+  DEFINE_SSE_VAR(SSE2)
+  DEFINE_SSE_VAR(SSE3)
+  DEFINE_SSE_VAR(SSE4_1)
+  DEFINE_SSE_VAR(SSE4_2)
+  DEFINE_SSE_VAR(SSE4_A)
+ENDIF()
 
 # Add build flags for clang AND GCC
 if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
@@ -341,6 +344,13 @@ if(MSVC)
   add_definitions("/wd4244") # Conversion from number_t -> int
   add_definitions("/wd4267") # Conversion during return
   add_definitions("/wd4522") # Duplicated operator=() in Eigen headers
+
+  # Bessel  include(CheckIfUnderscorePrefixedBesselFunctionsExist)
+  include(CheckIfUnderscorePrefixedBesselFunctionsExist)
+  check_if_underscore_prefixed_bessel_functions_exist(HAVE_UNDERSCORE_PREFIXED_BESSEL_FUNCTIONS)
+  if (HAVE_UNDERSCORE_PREFIXED_BESSEL_FUNCTIONS)
+    add_definitions(-DCERES_MSVC_USE_UNDERSCORE_PREFIXED_BESSEL_FUNCTIONS)
+  endif()
 
 endif(MSVC)
 

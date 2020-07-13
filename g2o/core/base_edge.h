@@ -114,12 +114,41 @@ namespace g2o {
       /**
        * calculate the robust information matrix by updating the information matrix of the error
        */
-      InformationType robustInformation(const Vector3& rho)
+      InformationType robustInformation(const Vector3& rho) const
       {
         InformationType result = rho[1] * _information;
         //ErrorVector weightedErrror = _information * _error;
         //result.noalias() += 2 * rho[2] * (weightedErrror * weightedErrror.transpose());
         return result;
+      }
+
+      bool writeInformationMatrix(std::ostream& os) const {
+        for (int i = 0; i < information().rows(); ++i)
+          for (int j = i; j < information().cols(); ++j) os << information()(i, j) << " ";
+        return os.good();
+      }
+
+      bool readInformationMatrix(std::istream& is) {
+        for (int i = 0; i < information().rows() && is.good(); ++i)
+          for (int j = i; j < information().cols() && is.good(); ++j) {
+            is >> information()(i, j);
+            if (i != j) information()(j, i) = information()(i, j);
+          }
+        return is.good() || is.eof();
+      }
+
+      bool writeParamIds(std::ostream& os) const {
+        for (auto id : _parameterIds) os << id << " ";
+        return os.good();
+      }
+
+      bool readParamIds(std::istream& is) {
+        for (size_t i = 0; i < numParameters(); ++i) {
+          int paramId;
+          is >> paramId;
+          setParameterId(i, paramId);
+        }
+        return is.good() || is.eof();
       }
 
     public:
